@@ -1,0 +1,46 @@
+# General
+.DS_Store
+Thumbs.db
+*.log
+*.tmp
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+
+# Node / Frontend
+node_modules/
+frontend/node_modules/
+frontend/dist/
+frontend/.vite/
+
+# Docker / Compose
+*.env
+.env
+.env.*
+
+# Backend data & artifacts
+backend/data/
+backend/model.pt
+backend/processed/
+backend/images/
+
+# Vite/React cache
+frontend/.cache/
+
+# VSCode
+.vscode/
+
+# Coverage / tests
+coverage/
+*.coverage
+
+# Ultralytics / Torch caches
+runs/
+*.pt
+*.onnx
+
+# Misc
+*.sqlite
+*.db

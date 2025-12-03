@@ -1,0 +1,25 @@
+version: "3.9"
+
+services:
+  ingestion:
+    build: ./backend
+    container_name: esp32_ingestion
+    ports:
+      - "5473:5473"
+    volumes:
+      - ./backend/images:/backend/images
+      - ./backend/processed:/backend/processed
+    restart: unless-stopped
+
+  frontend:
+    image: node:18-alpine
+    working_dir: /frontend
+    container_name: egg_pwa
+    volumes:
+      - ./frontend:/frontend
+    command: sh -c "npm install && npm run dev -- --host 0.0.0.0 --port 8080"
+    ports:
+      - "5173:8080"
+    environment:
+      - VITE_BACKEND_URL=http://localhost:5473
+    restart: unless-stopped

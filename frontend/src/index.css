@@ -1,0 +1,219 @@
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    /* Egg Theme Colors */
+    --background: 48 60% 96%;
+    --foreground: 26 40% 20%;
+
+    --card: 0 0% 100%;
+    --card-foreground: 26 40% 20%;
+
+    --popover: 0 0% 100%;
+    --popover-foreground: 26 40% 20%;
+
+    --primary: 48 100% 74%;
+    --primary-foreground: 26 40% 20%;
+
+    --secondary: 32 100% 64%;
+    --secondary-foreground: 0 0% 100%;
+
+    --muted: 48 40% 90%;
+    --muted-foreground: 26 30% 45%;
+
+    --accent: 205 100% 85%;
+    --accent-foreground: 26 40% 20%;
+
+    --destructive: 0 84% 60%;
+    --destructive-foreground: 0 0% 100%;
+
+    --border: 48 40% 85%;
+    --input: 48 40% 85%;
+    --ring: 32 100% 64%;
+
+    --radius: 1rem;
+
+    /* Custom Egg Theme Variables */
+    --egg-yellow: 48 100% 74%;
+    --egg-brown: 26 40% 39%;
+    --egg-orange: 32 100% 64%;
+    --egg-blue: 205 100% 85%;
+    --egg-cream: 48 60% 96%;
+    --egg-white: 0 0% 100%;
+
+    /* Gradients */
+    --gradient-sunny: linear-gradient(135deg, hsl(48 100% 74%) 0%, hsl(32 100% 64%) 100%);
+    --gradient-warm: linear-gradient(180deg, hsl(48 60% 96%) 0%, hsl(48 100% 84%) 100%);
+    --gradient-card: linear-gradient(145deg, hsl(0 0% 100%) 0%, hsl(48 40% 97%) 100%);
+
+    /* Shadows */
+    --shadow-soft: 0 4px 20px -4px hsl(26 40% 39% / 0.15);
+    --shadow-card: 0 8px 30px -8px hsl(26 40% 39% / 0.12);
+    --shadow-glow: 0 0 30px hsl(48 100% 74% / 0.4);
+
+    --sidebar-background: 0 0% 98%;
+    --sidebar-foreground: 240 5.3% 26.1%;
+    --sidebar-primary: 240 5.9% 10%;
+    --sidebar-primary-foreground: 0 0% 98%;
+    --sidebar-accent: 240 4.8% 95.9%;
+    --sidebar-accent-foreground: 240 5.9% 10%;
+    --sidebar-border: 220 13% 91%;
+    --sidebar-ring: 217.2 91.2% 59.8%;
+  }
+
+  .dark {
+    --background: 26 30% 10%;
+    --foreground: 48 60% 96%;
+
+    --card: 26 25% 15%;
+    --card-foreground: 48 60% 96%;
+
+    --popover: 26 25% 15%;
+    --popover-foreground: 48 60% 96%;
+
+    --primary: 48 100% 74%;
+    --primary-foreground: 26 40% 15%;
+
+    --secondary: 32 100% 64%;
+    --secondary-foreground: 26 40% 15%;
+
+    --muted: 26 20% 20%;
+    --muted-foreground: 48 30% 70%;
+
+    --accent: 205 60% 40%;
+    --accent-foreground: 0 0% 100%;
+
+    --destructive: 0 62% 50%;
+    --destructive-foreground: 0 0% 100%;
+
+    --border: 26 20% 25%;
+    --input: 26 20% 25%;
+    --ring: 32 100% 64%;
+
+    --sidebar-background: 240 5.9% 10%;
+    --sidebar-foreground: 240 4.8% 95.9%;
+    --sidebar-primary: 224.3 76.3% 48%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 240 3.7% 15.9%;
+    --sidebar-accent-foreground: 240 4.8% 95.9%;
+    --sidebar-border: 240 3.7% 15.9%;
+    --sidebar-ring: 217.2 91.2% 59.8%;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+
+  body {
+    @apply bg-background text-foreground font-sans antialiased;
+    font-family: 'Poppins', sans-serif;
+  }
+}
+
+@layer utilities {
+  .gradient-sunny {
+    background: var(--gradient-sunny);
+  }
+
+  .gradient-warm {
+    background: var(--gradient-warm);
+  }
+
+  .gradient-card {
+    background: var(--gradient-card);
+  }
+
+  .shadow-soft {
+    box-shadow: var(--shadow-soft);
+  }
+
+  .shadow-card {
+    box-shadow: var(--shadow-card);
+  }
+
+  .shadow-glow {
+    box-shadow: var(--shadow-glow);
+  }
+
+  .egg-bounce {
+    animation: egg-bounce 2s ease-in-out infinite;
+  }
+
+  .fade-in {
+    animation: fade-in 0.3s ease-out forwards;
+  }
+
+  .slide-up {
+    animation: slide-up 0.4s ease-out forwards;
+  }
+
+  .scale-in {
+    animation: scale-in 0.2s ease-out forwards;
+  }
+}
+
+@keyframes egg-bounce {
+  0%, 100% {
+    transform: translateY(0) rotate(-3deg);
+  }
+  50% {
+    transform: translateY(-10px) rotate(3deg);
+  }
+}
+
+@keyframes fade-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes slide-up {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes scale-in {
+  from {
+    opacity: 0;
+    transform: scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+/* Custom scrollbar */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: hsl(var(--muted));
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb {
+  background: hsl(var(--egg-orange));
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: hsl(var(--egg-brown));
+}
