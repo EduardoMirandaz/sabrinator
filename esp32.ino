@@ -2,19 +2,28 @@
 #include <WiFi.h>
 #include "esp_http_client.h"
 
-
 const char* ssid = "REGACOFRENTE";
 const char* password = "Rep45827891";
 
-// your ingestion endpoint (image binary POST)
+// ingestion endpoint
 const char* upload_url = "http://192.168.1.170:5473/upload";
 
-// interval for taking images (ms)
-unsigned long interval = 1000;
+// captura da imagem
+unsigned long captureInterval = 5000;
 unsigned long lastCapture = 0;
+
+// controle do flash
+#define LED_PIN 4
+unsigned long flashOnInterval = 0;   // liga a cada 1s
+unsigned long flashDuration   = 10000;    // permanece ligado por 10s
+unsigned long lastFlashOn = 0;
+bool flashActive = false;
 
 void setup() {
   Serial.begin(115200);
+
+  pinMode(LED_PIN, OUTPUT);
+  digitalWrite(LED_PIN, LOW); // começa desligado
 
   WiFi.begin(ssid, password);
   while (WiFi.status() != WL_CONNECTED) { delay(100); }
@@ -40,7 +49,7 @@ void setup() {
   config.pin_reset    = -1;
   config.xclk_freq_hz = 20000000;
   config.pixel_format = PIXFORMAT_JPEG;
-  config.frame_size   = FRAMESIZE_QVGA;   // enough for monitoring eggs
+  config.frame_size   = FRAMESIZE_QVGA;
   config.jpeg_quality = 12;
   config.fb_count     = 1;
 
@@ -48,8 +57,29 @@ void setup() {
 }
 
 void loop() {
-  if (millis() - lastCapture >= interval) {
-    lastCapture = millis();
+  unsigned long now = millis();
+
+  // ---------------------------------------------------
+  // FLASH CONTROL
+  // ---------------------------------------------------
+  if (!flashActive && (now - lastFlashOn >= flashOnInterval)) {
+    // ligar o flash
+    digitalWrite(LED_PIN, HIGH);
+    flashActive = true;
+    lastFlashOn = now;
+  }
+
+  if (flashActive && (now - lastFlashOn >= flashDuration)) {
+    // desligar o flash após 5 segundos
+    digitalWrite(LED_PIN, LOW);
+    flashActive = false;
+  }
+
+  // ---------------------------------------------------
+  // IMAGE CAPTURE AND UPLOAD
+  // ---------------------------------------------------
+  if (now - lastCapture >= captureInterval) {
+    lastCapture = now;
 
     camera_fb_t *fb = esp_camera_fb_get();
     if (!fb) return;

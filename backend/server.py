@@ -7,6 +7,8 @@ import json
 from typing import Optional, Dict, Any
 from fastapi import Depends
 from fastapi.middleware.cors import CORSMiddleware
+import os
+from services.auth_service import ensure_admin
 from routes.auth import router as auth_router, admin_router
 
 app = FastAPI()
@@ -17,6 +19,19 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+# Ensure admin exists on startup using environment variables
+@app.on_event("startup")
+def _bootstrap_admin_on_startup():
+    username = os.environ.get("ADMIN_USERNAME", "admin")
+    password = os.environ.get("ADMIN_PASSWORD", "admin123")
+    name = os.environ.get("ADMIN_NAME", "Admin")
+    phone = os.environ.get("ADMIN_PHONE", "+00 00 00000-0000")
+    try:
+        ensure_admin(username=username, password=password, name=name, phone=phone)
+    except Exception:
+        # Avoid blocking startup if something goes wrong
+        pass
 app.include_router(auth_router)
 app.include_router(admin_router)
 

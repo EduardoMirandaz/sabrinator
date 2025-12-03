@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Link, useSearchParams } from 'react-router-dom';
+import { Link, useSearchParams, useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { useAuth } from '@/context/AuthContext';
 import { validateInviteToken } from '@/services/api';
@@ -13,6 +13,7 @@ import { Loader2, CheckCircle, XCircle } from 'lucide-react';
 
 const RegisterInvite: React.FC = () => {
   const [searchParams] = useSearchParams();
+  const navigate = useNavigate();
   const inviteToken = searchParams.get('token') || '';
   
   const [username, setUsername] = useState('');
@@ -23,6 +24,9 @@ const RegisterInvite: React.FC = () => {
   const [isValidating, setIsValidating] = useState(true);
   const [isValid, setIsValid] = useState(false);
   const [expiresAt, setExpiresAt] = useState<string | null>(null);
+  // States for manual code entry path (no token present)
+  const [code, setCode] = useState('');
+  const [checking, setChecking] = useState(false);
   
   const { register } = useAuth();
   const { toast } = useToast();
@@ -101,7 +105,86 @@ const RegisterInvite: React.FC = () => {
     );
   }
 
-  if (!inviteToken || !isValid) {
+  if (!inviteToken) {
+    const handleCheckCode = async (e: React.FormEvent) => {
+      e.preventDefault();
+      const trimmed = code.trim();
+      if (!trimmed) return;
+      setChecking(true);
+      try {
+        const result = await validateInviteToken(trimmed);
+        if (result.valid) {
+          navigate(`/register?token=${encodeURIComponent(trimmed)}`);
+        } else {
+          toast({ title: 'Invalid code', description: 'Please check with the admin', variant: 'destructive' });
+        }
+      } catch {
+        toast({ title: 'Validation error', description: 'Could not validate the code', variant: 'destructive' });
+      } finally {
+        setChecking(false);
+      }
+    };
+
+    return (
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        className="w-full max-w-md"
+      >
+        <Card className="shadow-card border-0">
+          <CardHeader className="text-center space-y-4">
+            <motion.div
+              animate={{ rotate: [0, 10, -10, 0] }}
+              transition={{ duration: 2, repeat: Infinity }}
+              className="flex justify-center"
+            >
+              <EggIcon size={64} />
+            </motion.div>
+            <div>
+              <CardTitle className="text-2xl font-bold">Enter Invite Code</CardTitle>
+              <CardDescription className="text-muted-foreground">Paste the code you received from the admin</CardDescription>
+            </div>
+          </CardHeader>
+          <CardContent>
+            <form onSubmit={handleCheckCode} className="space-y-4">
+              <div className="space-y-2">
+                <Label htmlFor="invite-code">Invite Code</Label>
+                <Input
+                  id="invite-code"
+                  type="text"
+                  placeholder="e.g. 9c2f..."
+                  value={code}
+                  onChange={(e) => setCode(e.target.value)}
+                  className="h-12"
+                />
+              </div>
+              <Button type="submit" variant="sunny" size="lg" className="w-full" disabled={checking}>
+                {checking ? (
+                  <>
+                    <Loader2 className="w-4 h-4 animate-spin" />
+                    Checking code...
+                  </>
+                ) : (
+                  'Continue'
+                )}
+              </Button>
+            </form>
+            <p className="text-center text-sm text-muted-foreground mt-6">
+              Have an invite link?{' '}
+              <span className="opacity-80">Use the link in your browser to skip this step.</span>
+            </p>
+            <div className="text-center mt-4">
+              <Link to="/login">
+                <Button variant="outline">Back to Login</Button>
+              </Link>
+            </div>
+          </CardContent>
+        </Card>
+      </motion.div>
+    );
+  }
+
+  if (!isValid) {
     return (
       <motion.div
         initial={{ opacity: 0, y: 20 }}
