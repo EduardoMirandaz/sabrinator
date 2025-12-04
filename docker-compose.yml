@@ -27,5 +27,17 @@ services:
     ports:
       - "5173:5173"
     environment:
-      - VITE_BACKEND_URL=http://localhost:5473
+      - VITE_BACKEND_URL=/api
+    restart: unless-stopped
+
+  nginx:
+    image: nginx:alpine
+    container_name: sabrinator_proxy
+    depends_on:
+      - ingestion
+      - frontend
+    ports:
+      - "80:80"
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
     restart: unless-stopped
