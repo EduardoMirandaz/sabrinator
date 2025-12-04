@@ -7,9 +7,11 @@ import json
 from typing import Optional, Dict, Any
 from fastapi import Depends
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.staticfiles import StaticFiles
 import os
 from services.auth_service import ensure_admin
 from routes.auth import router as auth_router, admin_router
+from routes.eggs import router as eggs_router
 
 app = FastAPI()
 app.add_middleware(
@@ -34,11 +36,15 @@ def _bootstrap_admin_on_startup():
         pass
 app.include_router(auth_router)
 app.include_router(admin_router)
+app.include_router(eggs_router)
 
 SAVE_DIR = "images"
 PROCESSED_DIR = "processed"
 os.makedirs(SAVE_DIR, exist_ok=True)
 os.makedirs(PROCESSED_DIR, exist_ok=True)
+
+# Serve processed images publicly
+app.mount("/images", StaticFiles(directory=PROCESSED_DIR), name="images")
 
 # Load model once at startup for efficiency
 MODEL_PATH = os.path.join(os.path.dirname(__file__), "model.pt") if __file__ else "model.pt"

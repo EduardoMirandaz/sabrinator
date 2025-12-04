@@ -9,6 +9,11 @@ services:
     volumes:
       - ./backend/images:/backend/images
       - ./backend/processed:/backend/processed
+    environment:
+      - ADMIN_USERNAME=draude
+      - ADMIN_PASSWORD=91441209
+      - ADMIN_NAME=Admin
+      - ADMIN_PHONE=+55 11 99999-9999
     restart: unless-stopped
 
   frontend:

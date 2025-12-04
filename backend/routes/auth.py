@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, Header
+from fastapi import APIRouter, Depends, Header, HTTPException
 from typing import Optional
 from schemas.auth import InviteCreateRequest, RegisterRequest, LoginRequest, JWTResponse, User
 import os
@@ -6,6 +6,18 @@ from services.auth_service import create_invite, list_invites, revoke_invite, re
 
 router = APIRouter(prefix="/auth", tags=["auth"])
 admin_router = APIRouter(prefix="/admin", tags=["admin"])
+
+# Reusable auth dependency for protected routes
+def get_current_user(authorization: Optional[str] = Header(None)):
+    if not authorization or not authorization.startswith("Bearer "):
+        raise HTTPException(status_code=401, detail="unauthorized")
+    payload = decode_token(authorization.split(" ", 1)[1])
+    if not payload:
+        raise HTTPException(status_code=401, detail="unauthorized")
+    user = get_user_by_id(payload.get("sub"))
+    if not user:
+        raise HTTPException(status_code=404, detail="user_not_found")
+    return user
 
 @admin_router.post("/invite/create")
 def create_invite_endpoint(req: InviteCreateRequest):

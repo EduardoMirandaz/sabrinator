@@ -196,3 +196,66 @@ export const updateUsername = async (newUsername: string): Promise<User> => {
 };
 
 export default api;
+
+// ---- History v2 API (based on processed log) ----
+export type EggHistoryEvent = {
+  event_id: string;
+  before: { count: number; timestamp: string; image_path?: string | null; image_url?: string | null };
+  after: { count: number; timestamp: string; image_path?: string | null; image_url?: string | null };
+  confirmed_delay_seconds: number;
+  delta: number;
+  box_id: number;
+  taker_name?: string;
+  box?: { id: number; inserted_at?: string; payer_name?: string; payer_pix?: string };
+  egg_taker_verified?: boolean;
+  verified_by_user?: string | null;
+  verification_timestamp?: string | null;
+  mistake_flag?: boolean;
+};
+
+export type EggTakerAction = {
+  event_id: string;
+  action: 'confirm' | 'mistake';
+  by: string;
+  timestamp: string;
+  box_id?: number;
+  delta?: number;
+};
+
+function normalizeEventImageUrls<T extends EggHistoryEvent>(e: T): T {
+  const prefix = API_BASE_URL.replace(/\/$/, "");
+  const beforeUrl = e.before?.image_url || null;
+  const afterUrl = e.after?.image_url || null;
+  if (beforeUrl && beforeUrl.startsWith('/')) {
+    e.before.image_url = `${prefix}${beforeUrl}`;
+  }
+  if (afterUrl && afterUrl.startsWith('/')) {
+    e.after.image_url = `${prefix}${afterUrl}`;
+  }
+  return e;
+}
+
+export async function getHistoryFeed(params?: { from?: string; to?: string; box_id?: number }): Promise<EggHistoryEvent[]> {
+  const qs: Record<string, string> = {};
+  if (params?.from) qs["date_from"] = params.from;
+  if (params?.to) qs["date_to"] = params.to;
+  if (params?.box_id != null) qs["box_id"] = String(params.box_id);
+  const response = await api.get('/eggs/history', { params: qs });
+  const items = response.data as EggHistoryEvent[];
+  return items.map((e) => normalizeEventImageUrls(e));
+}
+
+export async function confirmTaker(event_id: string): Promise<EggHistoryEvent> {
+  const response = await api.post('/eggs/confirm-taker', { event_id });
+  return normalizeEventImageUrls(response.data as EggHistoryEvent);
+}
+
+export async function markMistake(event_id: string): Promise<EggHistoryEvent> {
+  const response = await api.post('/eggs/mistake', { event_id });
+  return normalizeEventImageUrls(response.data as EggHistoryEvent);
+}
+
+export async function getTakerHistory(event_id: string): Promise<EggTakerAction[]> {
+  const response = await api.get('/eggs/takers-history', { params: { event_id } });
+  return response.data as EggTakerAction[];
+}
