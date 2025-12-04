@@ -22,8 +22,9 @@ export const BottomNavigation: React.FC = () => {
   const location = useLocation();
   const { user } = useAuth();
 
-  const items = user?.role === 'admin' 
-    ? [...navItems.slice(0, 4), ...adminItems]
+  // Ensure admins also see the Settings tab; append Admin tab
+  const items = user?.role === 'admin'
+    ? [...navItems, ...adminItems]
     : navItems;
 
   return (

@@ -16,6 +16,7 @@ import History from "@/screens/History";
 import Stats from "@/screens/Stats";
 import Notifications from "@/screens/Notifications";
 import Settings from "@/screens/Settings";
+import Logout from "@/screens/Logout";
 import Admin from "@/screens/Admin";
 import EventDetails from "@/screens/EventDetails";
 import NotFound from "@/pages/NotFound";
@@ -63,6 +64,7 @@ const App = () => {
               {/* App Routes */}
               <Route element={<AppLayout />}>
                 <Route path="/" element={<Home />} />
+                <Route path="/logout" element={<Logout />} />
                 <Route path="/confirm/:eventId" element={<Confirmation />} />
                 <Route path="/event/:eventId" element={<EventDetails />} />
                 <Route path="/history" element={<History />} />
