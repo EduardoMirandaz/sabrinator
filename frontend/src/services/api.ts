@@ -96,7 +96,14 @@ export const unregisterPushSubscription = async (endpoint: string): Promise<void
 // Egg state endpoints
 export const getCurrentState = async (): Promise<EggState> => {
   const response = await api.get('/eggs/current');
-  return response.data;
+  const data = response.data as EggState & { lastImageUrl?: string | null; previousImageUrl?: string | null };
+  const prefix = API_BASE_URL.replace(/\/$/, "");
+  const normalizeUrl = (u?: string | null) => (u && u.startsWith('/') ? `${prefix}${u}` : u || '');
+  return {
+    ...data,
+    lastImageUrl: normalizeUrl((data as any).lastImageUrl),
+    previousImageUrl: normalizeUrl((data as any).previousImageUrl),
+  } as EggState;
 };
 
 export const getEggHistory = async (boxId?: string): Promise<EggEvent[]> => {

@@ -210,6 +210,29 @@ def get_takers_history(event_id: str, user=Depends(get_current_user)) -> List[Di
     return out
 
 
+@router.get("/current")
+def get_current_state(user=Depends(get_current_user)) -> Dict[str, Any]:
+    data = [_normalize(e) for e in _read_log()]
+    if not data:
+        raise HTTPException(status_code=404, detail="no_data")
+    # Sort newest first based on after/before timestamp
+    data.sort(key=lambda e: e.get("after", {}).get("timestamp") or e.get("before", {}).get("timestamp") or "", reverse=True)
+    latest = data[0]
+    before = latest.get("before") or {}
+    after = latest.get("after") or {}
+    # Ensure image URLs are exposed via /images
+    before_url = _image_url(before.get("image_path")) if before else None
+    after_url = _image_url(after.get("image_path")) if after else None
+    return {
+        "boxId": str(latest.get("box_id")),
+        "currentCount": int(after.get("count") or 0),
+        "previousCount": int(before.get("count") or 0),
+        "lastUpdated": after.get("timestamp") or before.get("timestamp"),
+        "lastImageUrl": after_url,
+        "previousImageUrl": before_url,
+    }
+
+
 @router.post("/mistake")
 def mark_mistake(payload: Dict[str, Any], user=Depends(get_current_user)) -> Dict[str, Any]:
     event_id = payload.get("event_id")

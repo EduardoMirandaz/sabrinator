@@ -46,7 +46,9 @@ export const EggCard: React.FC<EggCardProps> = ({
                 )}
               >
                 <span>{delta < 0 ? '↓' : '↑'}</span>
-                <span>{Math.abs(delta)} eggs {delta < 0 ? 'taken' : 'added'}</span>
+                <span>
+                  {Math.abs(delta)} {Math.abs(delta) === 1 ? 'egg' : 'eggs'} {delta < 0 ? 'taken' : 'added'}
+                </span>
               </motion.div>
             )}
             
