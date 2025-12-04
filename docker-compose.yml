@@ -9,6 +9,7 @@ services:
     volumes:
       - ./backend/images:/backend/images
       - ./backend/processed:/backend/processed
+      - ./backend/data:/backend/data
     environment:
       - ADMIN_USERNAME=draude
       - ADMIN_PASSWORD=91441209

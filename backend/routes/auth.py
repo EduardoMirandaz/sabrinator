@@ -2,7 +2,8 @@ from fastapi import APIRouter, Depends, Header, HTTPException
 from typing import Optional
 from schemas.auth import InviteCreateRequest, RegisterRequest, LoginRequest, JWTResponse, User
 import os
-from services.auth_service import create_invite, list_invites, revoke_invite, register_user, login_user, decode_token, get_user_by_id, ensure_admin
+from services.auth_service import create_invite, list_invites, revoke_invite, register_user, login_user, decode_token, get_user_by_id, ensure_admin, _load, _save
+from config import USERS_JSON
 
 router = APIRouter(prefix="/auth", tags=["auth"])
 admin_router = APIRouter(prefix="/admin", tags=["admin"])
@@ -80,3 +81,20 @@ def bootstrap_admin():
     phone = os.environ.get("ADMIN_PHONE", "+00 00 00000-0000")
     admin = ensure_admin(username=username, password=password, name=name, phone=phone)
     return {"status": "ok", "admin": {"id": admin['id'], "username": admin['username']}}
+
+@admin_router.get("/users")
+def list_users_endpoint():
+    users = _load(USERS_JSON)
+    # Hide sensitive fields
+    for u in users:
+        u.pop("password_hash", None)
+    return users
+
+@admin_router.delete("/users/{user_id}")
+def delete_user_endpoint(user_id: str):
+    users = _load(USERS_JSON)
+    new_users = [u for u in users if u.get("id") != user_id]
+    if len(new_users) == len(users):
+        return {"error": "not_found"}
+    _save(USERS_JSON, new_users)
+    return {"status": "ok"}
