@@ -1,0 +1,5 @@
+# Run retention hourly at minute 5
+5 * * * * python /backend/scripts/retention.py
+
+# Report usage daily at 01:00 UTC
+0 1 * * * python /backend/scripts/storage_usage.py --human

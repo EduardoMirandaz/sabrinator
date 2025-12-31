@@ -1,0 +1,58 @@
+version: "3.9"
+
+services:
+  ingestion:
+    image: eduardomirandaz/sabrinator-backend:${BACKEND_VERSION:-v1.0.0}
+    container_name: esp32_ingestion
+    environment:
+      - ADMIN_USERNAME=${ADMIN_USERNAME}
+      - ADMIN_PASSWORD=${ADMIN_PASSWORD}
+      - ADMIN_NAME=${ADMIN_NAME}
+      - ADMIN_PHONE=${ADMIN_PHONE}
+      - JWT_SECRET=${JWT_SECRET}
+      - VAPID_PUBLIC_KEY=${VAPID_PUBLIC_KEY}
+      - VAPID_PRIVATE_KEY=${VAPID_PRIVATE_KEY}
+      - VAPID_EMAIL=${VAPID_EMAIL}
+    volumes:
+      - /srv/sabrinator/images:/backend/images
+      - /srv/sabrinator/processed:/backend/processed
+      - /srv/sabrinator/data:/backend/data
+    ports:
+      - "5473:5473"
+    restart: unless-stopped
+
+  nginx:
+    image: eduardomirandaz/sabrinator-nginx:${NGINX_VERSION:-v1.0.0}
+    container_name: sabrinator_proxy
+    depends_on:
+      - ingestion
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - /srv/sabrinator/certs:/etc/nginx/certs:ro
+      # Serve latest frontend build directly from VM to avoid stale image
+      - /srv/sabrinator/frontend/dist:/usr/share/nginx/html:ro
+    restart: unless-stopped
+
+  maintenance:
+    image: eduardomirandaz/sabrinator-maintenance:${MAINT_VERSION:-v1.0.0}
+    container_name: sabrinator_maintenance
+    depends_on:
+      - ingestion
+    environment:
+      - RAW_MAX_IMAGES=${RAW_MAX_IMAGES:-100}
+      - PROCESSED_MAX_GB=${PROCESSED_MAX_GB:-150}
+      - STORAGE_CAP_GB=${STORAGE_CAP_GB:-200}
+      - STORAGE_WARN_GB=${STORAGE_WARN_GB:-180}
+      - RETENTION_MIN_AGE_SEC=${RETENTION_MIN_AGE_SEC:-30}
+      - RAW_DIR=/backend/images
+      - PROCESSED_DIR=/backend/processed
+      - DATA_DIR=/backend/data
+      - LOG_DIR=/backend/data
+    volumes:
+      - /srv/sabrinator/images:/backend/images
+      - /srv/sabrinator/processed:/backend/processed
+      - /srv/sabrinator/data:/backend/data
+      - /srv/sabrinator/crontab/crontab:/crontab:ro
+    restart: unless-stopped

@@ -1,5 +1,5 @@
 // Service Worker for Eggs Regaco PWA
-const CACHE_NAME = 'eggs-regaco-v1';
+const CACHE_NAME = 'eggs-regaco-v2';
 const OFFLINE_URL = '/offline.html';
 
 // Assets to cache on install

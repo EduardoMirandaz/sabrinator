@@ -1,0 +1,55 @@
+version: "3.9"
+
+services:
+  ingestion:
+    image: sabrinator-backend:local
+    container_name: esp32_ingestion
+    environment:
+      - ADMIN_USERNAME=${ADMIN_USERNAME}
+      - ADMIN_PASSWORD=${ADMIN_PASSWORD}
+      - ADMIN_NAME=${ADMIN_NAME}
+      - ADMIN_PHONE=${ADMIN_PHONE}
+      - JWT_SECRET=${JWT_SECRET}
+      - VAPID_PUBLIC_KEY=${VAPID_PUBLIC_KEY}
+      - VAPID_PRIVATE_KEY=${VAPID_PRIVATE_KEY}
+      - VAPID_EMAIL=${VAPID_EMAIL}
+    volumes:
+      - ./backend/images:/backend/images
+      - ./backend/processed:/backend/processed
+      - ./backend/data:/backend/data
+    ports:
+      - "5473:5473"
+    restart: unless-stopped
+
+  nginx:
+    image: sabrinator-nginx:local
+    container_name: sabrinator_proxy
+    depends_on:
+      - ingestion
+    ports:
+      - "8080:80"
+    # no volumes needed; static and config are baked into image
+    restart: unless-stopped
+
+  maintenance:
+    image: sabrinator-maintenance:local
+    container_name: sabrinator_maintenance
+    depends_on:
+      - ingestion
+    environment:
+      - RAW_MAX_IMAGES=${RAW_MAX_IMAGES:-100}
+      - PROCESSED_MAX_GB=${PROCESSED_MAX_GB:-150}
+      - STORAGE_CAP_GB=${STORAGE_CAP_GB:-200}
+      - STORAGE_WARN_GB=${STORAGE_WARN_GB:-180}
+      - RETENTION_MIN_AGE_SEC=${RETENTION_MIN_AGE_SEC:-30}
+      - RAW_DIR=/backend/images
+      - PROCESSED_DIR=/backend/processed
+      - DATA_DIR=/backend/data
+      - LOG_DIR=/backend/data
+    volumes:
+      - ./backend/images:/backend/images
+      - ./backend/processed:/backend/processed
+      - ./backend/data:/backend/data
+      - ./backend/scripts:/backend/scripts:ro
+      - ./maintenance/crontab:/crontab:ro
+    restart: unless-stopped

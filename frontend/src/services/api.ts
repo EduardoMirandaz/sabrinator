@@ -9,7 +9,17 @@ import type {
   PushSubscriptionData 
 } from '@/types';
 
-const API_BASE_URL = import.meta.env.VITE_BACKEND_URL || 'http://localhost:5473';
+let API_BASE_URL = import.meta.env.VITE_BACKEND_URL || '/api';
+// Runtime guard: avoid localhost/http in production contexts
+if (typeof window !== 'undefined') {
+  const isLocalhost = ['localhost', '127.0.0.1', '::1'].includes(window.location.hostname);
+  const isHttps = window.location.protocol === 'https:';
+  if (!isLocalhost && /localhost|127\.0\.0\.1|::1/.test(API_BASE_URL)) {
+    API_BASE_URL = '/api';
+  } else if (isHttps && API_BASE_URL.startsWith('http://')) {
+    API_BASE_URL = '/api';
+  }
+}
 
 const api = axios.create({
   baseURL: API_BASE_URL,

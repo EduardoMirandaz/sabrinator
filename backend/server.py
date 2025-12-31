@@ -1,8 +1,6 @@
 from fastapi import FastAPI, UploadFile, File, Request
 from datetime import datetime, timezone, timedelta
 import os
-import cv2
-from ultralytics import YOLO
 import json
 from typing import Optional, Dict, Any
 from fastapi import Depends
@@ -12,6 +10,7 @@ import os
 from services.auth_service import ensure_admin
 from routes.auth import router as auth_router, admin_router
 from routes.eggs import router as eggs_router
+from routes.notifications import router as notifications_router
 
 app = FastAPI()
 app.add_middleware(
@@ -37,6 +36,7 @@ def _bootstrap_admin_on_startup():
 app.include_router(auth_router)
 app.include_router(admin_router)
 app.include_router(eggs_router)
+app.include_router(notifications_router)
 
 SAVE_DIR = "images"
 PROCESSED_DIR = "processed"
@@ -50,18 +50,31 @@ app.mount("/images", StaticFiles(directory=PROCESSED_DIR), name="images")
 MODEL_PATH = os.path.join(os.path.dirname(__file__), "model.pt") if __file__ else "model.pt"
 model = None
 try:
-    model = YOLO(MODEL_PATH)
+    from ultralytics import YOLO  # type: ignore
 except Exception:
-    # Model may not be available during initial container build; defer load errors.
+    YOLO = None
+try:
+    if YOLO is not None:
+        model = YOLO(MODEL_PATH)
+    else:
+        model = None
+except Exception:
     model = None
 
 def process_image(src_path: str, dst_path: str):
     """Run inference to count eggs, draw bboxes, and write count on image."""
+    try:
+        import cv2  # type: ignore
+    except Exception:
+        return False
     if model is None:
         # Try lazy load in case startup load failed
         try:
             mpath = MODEL_PATH
-            globals()['model'] = YOLO(mpath)
+            if YOLO is not None:
+                globals()['model'] = YOLO(mpath)
+            else:
+                return False
         except Exception:
             return False
 
@@ -301,6 +314,10 @@ def detect_and_maybe_confirm_change(now: datetime, current_count: int, current_i
 @app.post("/upload")
 async def upload_image(request: Request, file: UploadFile = File(None)):
     """Accept either multipart/form-data with field 'file' or raw binary body (image/jpeg)."""
+    try:
+        import cv2  # type: ignore
+    except Exception:
+        cv2 = None
     current_dt = now_br()
     timestamp_name = fname_from_dt(current_dt)
     filename = f"{SAVE_DIR}/{timestamp_name}"
@@ -318,18 +335,19 @@ async def upload_image(request: Request, file: UploadFile = File(None)):
     # if it's the first image or a confirmed change after 10 seconds.
     try:
         # Ensure model is lazy-loaded
-        if model is None:
-            globals()['model'] = YOLO(MODEL_PATH)
-        img = cv2.imread(filename)
-        if img is None:
-            raise RuntimeError("Failed to read uploaded image")
-        results = model(img)
         egg_count = 0
-        for r in results:
-            boxes = r.boxes
-            if boxes is None:
-                continue
-            egg_count += len(boxes)
+        if YOLO is not None and cv2 is not None:
+            if model is None:
+                globals()['model'] = YOLO(MODEL_PATH)
+            img = cv2.imread(filename)
+            if img is None:
+                raise RuntimeError("Failed to read uploaded image")
+            results = model(img)
+            for r in results:
+                boxes = r.boxes
+                if boxes is None:
+                    continue
+                egg_count += len(boxes)
 
         # Use BR timestamp captured at request time
         now = current_dt
@@ -337,13 +355,13 @@ async def upload_image(request: Request, file: UploadFile = File(None)):
     except Exception:
         # Keep upload working even if inference fails
         pass
-    # Enforce max image count (keep most recent 30 based on filename timestamps)
+    # Enforce max image count (keep most recent 100 based on filename timestamps)
     try:
         files = [fn for fn in os.listdir(SAVE_DIR) if fn.lower().endswith('.jpg')]
-        if len(files) > 30:
+        if len(files) > 100:
             # Sort ascending (oldest first) because names start with chronological timestamp
             files.sort()
-            to_delete = files[0:len(files)-30]
+            to_delete = files[0:len(files)-100]
             for old in to_delete:
                 try:
                     os.remove(os.path.join(SAVE_DIR, old))

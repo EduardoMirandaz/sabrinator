@@ -11,10 +11,10 @@ services:
       - ./backend/processed:/backend/processed
       - ./backend/data:/backend/data
     environment:
-      - ADMIN_USERNAME=draude
-      - ADMIN_PASSWORD=91441209
-      - ADMIN_NAME=Admin
-      - ADMIN_PHONE=+55 11 99999-9999
+      - ADMIN_USERNAME=${ADMIN_USERNAME:-admin}
+      - ADMIN_PASSWORD=${ADMIN_PASSWORD:-change-me}
+      - ADMIN_NAME=${ADMIN_NAME:-Admin}
+      - ADMIN_PHONE=${ADMIN_PHONE:-+00 00 00000-0000}
     restart: unless-stopped
 
   frontend:
@@ -40,4 +40,27 @@ services:
       - "80:80"
     volumes:
       - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+    restart: unless-stopped
+
+  maintenance:
+    build: ./maintenance
+    container_name: sabrinator_maintenance
+    depends_on:
+      - ingestion
+    environment:
+      - RAW_MAX_IMAGES=100
+      - PROCESSED_MAX_GB=150
+      - STORAGE_CAP_GB=200
+      - STORAGE_WARN_GB=180
+      - RETENTION_MIN_AGE_SEC=30
+      - RAW_DIR=/backend/images
+      - PROCESSED_DIR=/backend/processed
+      - DATA_DIR=/backend/data
+      - LOG_DIR=/backend/data
+    volumes:
+      - ./backend/images:/backend/images
+      - ./backend/processed:/backend/processed
+      - ./backend/data:/backend/data
+      - ./backend/scripts:/backend/scripts
+      - ./maintenance/crontab:/crontab:ro
     restart: unless-stopped

@@ -1,3 +1,27 @@
+# Secrets and local overrides
+.env
+*.env
+**/.env.local
+**/.env.*.local
+
+# OS junk
+.DS_Store
+Thumbs.db
+
+# Node/Yarn/PNPM logs
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# Frontend build cache
+frontend/node_modules/
+frontend/dist/
+
+# Python cache
+**/__pycache__/
+**/*.pyc
+**/*.pyo
 # General
 .DS_Store
 Thumbs.db
@@ -19,6 +43,12 @@ frontend/.vite/
 *.env
 .env
 .env.*
+
+# TLS certificates (do not commit)
+certs/
+*.pem
+*.key
+*.crt
 
 # Backend data & artifacts
 backend/data/
@@ -44,3 +74,6 @@ runs/
 # Misc
 *.sqlite
 *.db
+
+
+reset_vm_firewall.txt
