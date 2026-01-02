@@ -18,6 +18,7 @@ VM runtime path: `/srv/sabrinator`
 - [x] Backend Dockerfile no longer bakes secrets (use `.env`/compose envs).
 - [x] Nginx production image serves static from `frontend/dist` and proxies `/api` to `esp32_ingestion:5473`.
 - [x] VM compose example prepared with 443 exposed and certs mounted.
+  
 
 ## Doing (VM Recovery & Deploy)
 - [ ] Confirm provider firewall allows inbound TCP `22, 80, 443`.

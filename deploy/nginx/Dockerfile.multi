@@ -1,0 +1,21 @@
+FROM node:20-alpine AS build
+WORKDIR /app
+
+# Build-time configuration
+ARG BACKEND_URL=/api
+ARG VAPID_PUBLIC_KEY
+
+# Install dependencies
+COPY frontend/package.json frontend/package-lock.json* ./
+RUN npm ci || (echo "No lockfile, installing without it" && npm install)
+
+# Copy source and inject env for Vite
+COPY frontend ./
+RUN printf "VITE_BACKEND_URL=%s\nVITE_VAPID_PUBLIC_KEY=%s\n" "$BACKEND_URL" "$VAPID_PUBLIC_KEY" > .env.production
+RUN npm run build
+
+FROM nginx:alpine
+
+# Nginx config and built static
+COPY nginx/nginx.prod.conf /etc/nginx/nginx.conf
+COPY --from=build /app/dist /usr/share/nginx/html

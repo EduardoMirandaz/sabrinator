@@ -120,7 +120,6 @@ def send_test_notification(payload: Dict[str, Any], user=Depends(get_current_use
                 payload_json,
                 vapid_private_key=cfg.VAPID_PRIVATE_KEY,
                 vapid_claims={"sub": cfg.VAPID_EMAIL},
-                vapid_public_key=cfg.VAPID_PUBLIC_KEY,
             )
             sent += 1
         except WebPushException as e:

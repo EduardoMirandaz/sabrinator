@@ -198,6 +198,8 @@ const Settings: React.FC = () => {
                 Notifications are blocked. Please enable them in your browser settings.
               </p>
             )}
+
+            {/* Test push removed in rollback */}
           </CardContent>
         </Card>
       </motion.div>

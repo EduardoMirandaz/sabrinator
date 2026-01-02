@@ -155,6 +155,20 @@ export const markAllNotificationsRead = async (): Promise<void> => {
   await api.patch('/notifications/read-all');
 };
 
+// Push test endpoint
+export const sendTestPush = async (
+  title?: string,
+  body?: string,
+  url?: string
+): Promise<{ status: string; sent: number; failed: number; errors: string[] }> => {
+  const response = await api.post('/notifications/send-test', {
+    title,
+    body,
+    url,
+  });
+  return response.data;
+};
+
 // Stats endpoints
 export const getStats = async (): Promise<EggStats> => {
   const response = await api.get('/stats');

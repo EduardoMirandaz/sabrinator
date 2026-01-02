@@ -57,4 +57,4 @@ Processed images are served at `https://<HOST>/images/<filename>.jpg`.
 
 ## Notes
 - Nginx upstream expects backend container to be reachable as `esp32_ingestion` (container name or alias). Alternatively, rebuild Nginx to point to `http://ingestion:5473/`.
-- Frontend is built with `VITE_BACKEND_URL=/api` so browser calls go through Nginx.
+- Frontend is built with `VITE_BACKEND_URL=/api` so browser calls go through Nginx.?
